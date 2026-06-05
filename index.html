@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>訪問内容一覧</title>
+<style>
+  :root {
+    --blue: #185FA5; --blue-bg: #E6F1FB;
+    --amber-bg: #FAEEDA; --amber-text: #854F0B;
+    --border: #ddd; --muted: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: #f5f4f0; color: #1a1a1a; line-height: 1.7;
+    padding: 12px 12px 48px; max-width: 560px; margin: 0 auto;
+  }
+  header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header span { font-size: 12px; color: var(--muted); }
+  select {
+    width: 100%; font-size: 18px; font-weight: 600; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px; background: #fff;
+    appearance: none; -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>');
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  details.policy { margin: 10px 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+  details.policy summary { padding: 10px 14px; font-size: 14px; color: var(--muted); cursor: pointer; list-style: none; }
+  details.policy summary::before { content: "▸ "; }
+  details.policy[open] summary::before { content: "▾ "; }
+  details.policy p { padding: 0 14px 12px; font-size: 14px; }
+  .tabs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 12px 0; }
+  .tabs button {
+    padding: 11px 0; font-size: 16px; border: 1px solid var(--border);
+    border-radius: 10px; background: #fff; color: #1a1a1a;
+  }
+  .tabs button.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+  .tabs button.today::after { content: ""; display: block; width: 5px; height: 5px; border-radius: 50%; background: #D85A30; margin: 2px auto 0; }
+  .tabs button.active.today::after { background: #fff; }
+  .tabs button.empty { color: #bbb; }
+  .visit {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .visit .head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .visit .time { font-size: 21px; font-weight: 700; }
+  .visit .code {
+    margin-left: auto; font-size: 13px; font-weight: 600;
+    background: var(--blue-bg); color: var(--blue); padding: 3px 10px; border-radius: 8px; white-space: nowrap;
+  }
+  .visit p { font-size: 16px; }
+  .novisit { text-align: center; color: #999; font-size: 15px; padding: 28px 0; }
+  .notes { margin-top: 14px; background: var(--amber-bg); border-radius: 12px; padding: 12px 16px; }
+  .notes p { font-size: 14.5px; color: var(--amber-text); padding-left: 1.1em; text-indent: -1.1em; }
+  .notes p + p { margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>訪問内容一覧</h1>
+  <span>更新: 2026/06/05 09:43</span>
+</header>
+<select id="client" aria-label="利用者を選択"></select>
+<details class="policy"><summary>援助方針</summary><p id="policy"></p></details>
+<div class="tabs" id="tabs" role="tablist"></div>
+<div id="visits"></div>
+<div class="notes" id="notes" hidden></div>
+<script>
+const CLIENTS = [{"name": "木ノ上加代子・西", "policy": "訪問介護により日中独居時の生活支援を行い、規則的な生活の維持と家族の負担軽減を図る。", "visits": {"月": [{"time": "7:30〜8:30（60分）", "code": "身1生1", "text": "起床・更衣・洗面を声がけ・促し、身体接触は最低限にする。転倒等に備えそばについて見守り・必要部分のみ援助を行う。調理、食事・内服の見守り。"}, {"time": "11:15〜12:15（60分）", "code": "生活3", "text": "散歩につきそう。調理、食事・内服の見守り。本人と一緒に作るなど自立支援的アプローチを心がける。移動時は転倒に注意し付き添う。"}], "火": [{"time": "7:30〜8:30（60分）", "code": "身1生1", "text": "起床・更衣・洗面を声がけ・促し、身体接触は最低限にする。転倒等に備えそばについて見守り・必要部分のみ援助を行う。調理、食事・内服の見守り。"}, {"time": "11:15〜12:15（60分）", "code": "生活3", "text": "散歩につきそう。調理、食事・内服の見守り。本人と一緒に作るなど自立支援的アプローチを心がける。移動時は転倒に注意し付き添う。"}], "水": [{"time": "7:30〜8:30（60分）", "code": "身1生1", "text": "起床・更衣・洗面を声がけ・促し、身体接触は最低限にする。転倒等に備えそばについて見守り・必要部分のみ援助を行う。調理、食事・内服の見守り。"}, {"time": "11:15〜12:15（60分）", "code": "生活3", "text": "散歩につきそう。調理、食事・内服の見守り。本人と一緒に作るなど自立支援的アプローチを心がける。移動時は転倒に注意し付き添う。"}], "木": [{"time": "7:30〜8:30（60分）", "code": "身1生1", "text": "起床・更衣・洗面を声がけ・促し、身体接触は最低限にする。転倒等に備えそばについて見守り・必要部分のみ援助を行う。調理、食事・内服の見守り。デイ利用日のため、準備・見送りをする。"}], "金": [{"time": "7:30〜8:30（60分）", "code": "身1生1", "text": "起床・更衣・洗面を声がけ・促し、身体接触は最低限にする。転倒等に備えそばについて見守り・必要部分のみ援助を行う。調理、食事・内服の見守り。"}, {"time": "11:15〜12:15（60分）", "code": "生活3", "text": "散歩につきそう。調理、食事・内服の見守り。本人と一緒に作るなど自立支援的アプローチを心がける。移動時は転倒に注意し付き添う。"}], "土": [], "日": []}, "notes": ["活動が活発になられているため、転倒には十分気を付けるよう助言が必要。", "主は7:30~訪問だが、息子さんが遅出出勤の場合は11:15~の訪問に変更。", "木・土曜日はデイサービス利用あり。"]}, {"name": "堀元和子・本町", "policy": "福祉用具や住宅改修で安全な環境を整え転倒予防を図り、見守り・介助を行いながら自立を支援する。訪問リハビリや通所介護と併用し生活機能の維持向上と生活リズムの安定を図る。本人の役割を尊重し生活意欲を維持しつつ、訪問介護を活用し家族支援と多職種連携で在宅生活の継続を支援する。", "visits": {"月": [{"time": "8:45〜9:45（60分）", "code": "身1生1", "text": "起床・トイレ・洗面・着替えの介助。義歯装着確認。朝食準備及び食事と服薬の介助。必要があれば掃除を行う。下着の汚染・交換に留意。コルセットの正しい装着要確認。"}], "火": [{"time": "17:30〜18:15（45分）", "code": "生活2", "text": "デイ利用後の介入。社協からの弁当配達あるため夕食用の味噌汁と明日の朝食作り。食事・服薬介助、必要があれば掃除と洗濯を行う。コルセットの正しい装着要確認。"}], "水": [{"time": "8:45〜9:45（60分）", "code": "身1生1", "text": "起床・トイレ・洗面・着替えの介助。義歯装着確認。朝食準備及び食事と服薬の介助。必要があれば掃除を行う。下着の汚染・交換に留意。コルセットの正しい装着要確認。"}], "木": [{"time": "17:30〜18:15（45分）", "code": "生活2", "text": "デイ利用後の介入。社協からの弁当配達あるため夕食用の味噌汁と明日の朝食作り。食事・服薬介助、必要があれば掃除と洗濯を行う。コルセットの正しい装着要確認。"}], "金": [{"time": "8:45〜9:45（60分）", "code": "身1生1", "text": "起床・トイレ・洗面・着替えの介助。義歯装着確認。朝食準備及び食事と服薬の介助。必要があれば掃除を行う。下着の汚染・交換に留意。コルセットの正しい装着要確認。"}], "土": [{"time": "17:30〜18:15（45分）", "code": "生活2", "text": "デイ利用後の介入。夕食と明日の朝食作り。食事・服薬介助、必要があれば掃除と洗濯を行う。コルセットの正しい装着要確認。"}], "日": [{"time": "8:45〜9:45（60分）", "code": "身1生1", "text": "起床・トイレ・洗面・着替えの介助。義歯装着確認。朝食準備及び食事と服薬の介助。必要があれば掃除を行う。下着の汚染・交換に留意。コルセットの正しい装着要確認。"}]}, "notes": ["尿路感染症の再発あるため、介入時の下着の汚染確認は必須。熱発あるときはご家族に病院受診を伝える。", "コルセットを外されていることが多いため、随時着用するように声かけし定位置に正しく着用していただく。", "食事前は義歯着用されているかの確認必要。"]}, {"name": "冷水康士・伊唐", "policy": "洗濯や掃除・入浴に支援を受け、さっぱりと生活できるように支援します。また、息切れや視覚などによりご本人の不安もあると思われるので、服薬管理や体調確認・病院との連携が取れるような支援を計画しています。", "visits": {"月": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "火": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "水": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "木": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "金": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "土": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}], "日": [{"time": "16:30〜17:15（45分）", "code": "生活3", "text": "夕食・明日の朝食＆昼食の準備。夕食を食べていただき、服薬確認まで行う。明日の朝用内服薬をテーブルに準備しご本人へ伝える。掃除・洗濯は適時行う。"}]}, "notes": ["十分な食事量をバランスよく取れるように支援していく。", "買い物依頼あるときは現金ではなくEdy使用。こたつに置いてある白の透明ファイルに保管されている。"]}, {"name": "山下重行・北方崎", "policy": "訪問看護による健康管理とリハビリを継続しながら、訪問介護による生活環境整備と家事支援を導入することで妻の負担を軽減し、安全で衛生的な生活環境を整える。", "visits": {"月": [], "火": [], "水": [{"time": "14:15〜15:00（45分）", "code": "生活3", "text": "ご本人のベッド周辺・トイレ・居間の掃除を行う。"}], "木": [], "金": [], "土": [{"time": "14:15〜15:00（45分）", "code": "生活3", "text": "ご本人のベッド周辺・トイレ・居間の掃除を行う。"}], "日": []}, "notes": []}, {"name": "山下ツミエ・北方崎", "policy": "関節リウマチによる疼痛や関節変形、筋力低下により家事動作や移動に負担がみられるため、\n調理・掃除等の支援を行いながら安全な在宅生活の継続を支援する。\n本人ができることは継続できるよう、ヘルパーと一緒に家事を行い、身体的負担が集中しないよう配慮する。", "visits": {"月": [], "火": [], "水": [{"time": "15:00〜16:00（60分）", "code": "生活3", "text": "本人と一緒に調理を行う。献立も本人と相談し、できる限り本人の自立動作を活かし、固い食材のカットなどを支援する。調理（食材カット・後片付け含む）と台所周辺の掃除を安全に実施する。"}], "木": [], "金": [], "土": [{"time": "15:00〜16:00（60分）", "code": "生活3", "text": "本人と一緒に調理を行う。献立も本人と相談し、できる限り本人の自立動作を活かし、固い食材のカットなどを支援する。調理（食材カット・後片付け含む）と台所周辺の掃除を安全に実施する。"}], "日": []}, "notes": []}, {"name": "迫田信義・諸浦", "policy": "末期腎不全による透析治療を継続しながら在宅生活を維持するため、塩分・水分・カリウム・リン・たんぱく質に配慮した食事の調理支援を行う。透析後の体調不良や食欲低下に対応し、食べやすい形態の食事を提供することで栄養状態の維持を図る。", "visits": {"月": [], "火": [], "水": [], "木": [{"time": "10:00〜11:00（60分）", "code": "生活3", "text": "家にある食材で調理する（買い物は不可）。透析に配慮し塩分・カリウム・リンを控え、たんぱく質は適切に摂取。水分は食事も含め1日2000ccを目安に管理する。食べやすさや透析への配慮は当然として、何より本人が「おいしい」と感じることを最優先に、献立・味付けを本人と相談して決める。訪問時はむくみ・息切れ・食欲不振を確認・記録し、変化時は訪問看護師か長男へ連絡。"}], "金": [], "土": [], "日": []}, "notes": []}];
+const DAYS = ["月","火","水","木","金","土","日"];
+const todayIdx = (new Date().getDay() + 6) % 7;
+let ci = 0, day = DAYS[todayIdx];
+
+const sel = document.getElementById("client");
+CLIENTS.forEach((c, i) => sel.add(new Option(c.name, i)));
+sel.onchange = () => { ci = +sel.value; render(); };
+
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function render() {
+  const c = CLIENTS[ci];
+  document.getElementById("policy").textContent = c.policy || "（記載なし）";
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  DAYS.forEach((d, i) => {
+    const b = document.createElement("button");
+    b.textContent = d;
+    b.className = (d === day ? "active " : "") + (i === todayIdx ? "today " : "") + (c.visits[d].length ? "" : "empty");
+    b.onclick = () => { day = d; render(); };
+    tabs.appendChild(b);
+  });
+  const v = c.visits[day];
+  document.getElementById("visits").innerHTML = v.length
+    ? v.map(x => `<div class="visit"><div class="head"><span class="time">${esc(x.time)}</span><span class="code">${esc(x.code)}</span></div><p>${esc(x.text)}</p></div>`).join("")
+    : `<p class="novisit">${day}曜日の訪問はありません</p>`;
+  const n = document.getElementById("notes");
+  n.hidden = !c.notes.length;
+  n.innerHTML = c.notes.map(t => `<p>※${esc(t)}</p>`).join("");
+}
+render();
+</script>
+</body>
+</html>

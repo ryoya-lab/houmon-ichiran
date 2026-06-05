@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>訪問内容一覧</title>
+<style>
+  :root {
+    --blue: #185FA5; --blue-bg: #E6F1FB;
+    --amber-bg: #FAEEDA; --amber-text: #854F0B;
+    --border: #ddd; --muted: #666;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: #f5f4f0; color: #1a1a1a; line-height: 1.7;
+    padding: 12px 12px 48px; max-width: 560px; margin: 0 auto;
+  }
+  header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header span { font-size: 12px; color: var(--muted); }
+  select {
+    width: 100%; font-size: 18px; font-weight: 600; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 10px; background: #fff;
+    appearance: none; -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>');
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  details.policy { margin: 10px 0; background: #fff; border: 1px solid var(--border); border-radius: 10px; }
+  details.policy summary { padding: 10px 14px; font-size: 14px; color: var(--muted); cursor: pointer; list-style: none; }
+  details.policy summary::before { content: "▸ "; }
+  details.policy[open] summary::before { content: "▾ "; }
+  details.policy p { padding: 0 14px 12px; font-size: 14px; }
+  .tabs { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 12px 0; }
+  .tabs button {
+    padding: 11px 0; font-size: 16px; border: 1px solid var(--border);
+    border-radius: 10px; background: #fff; color: #1a1a1a;
+  }
+  .tabs button.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+  .tabs button.today::after { content: ""; display: block; width: 5px; height: 5px; border-radius: 50%; background: #D85A30; margin: 2px auto 0; }
+  .tabs button.active.today::after { background: #fff; }
+  .tabs button.empty { color: #bbb; }
+  .visit {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .visit .head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .visit .time { font-size: 21px; font-weight: 700; }
+  .visit .code {
+    margin-left: auto; font-size: 13px; font-weight: 600;
+    background: var(--blue-bg); color: var(--blue); padding: 3px 10px; border-radius: 8px; white-space: nowrap;
+  }
+  .visit p { font-size: 16px; }
+  .novisit { text-align: center; color: #999; font-size: 15px; padding: 28px 0; }
+  .notes { margin-top: 14px; background: var(--amber-bg); border-radius: 12px; padding: 12px 16px; }
+  .notes p { font-size: 14.5px; color: var(--amber-text); padding-left: 1.1em; text-indent: -1.1em; }
+  .notes p + p { margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>訪問内容一覧</h1>
+  <span>更新: __UPDATED__</span>
+</header>
+<select id="client" aria-label="利用者を選択"></select>
+<details class="policy"><summary>援助方針</summary><p id="policy"></p></details>
+<div class="tabs" id="tabs" role="tablist"></div>
+<div id="visits"></div>
+<div class="notes" id="notes" hidden></div>
+<script>
+const CLIENTS = /*__DATA__*/[];
+const DAYS = ["月","火","水","木","金","土","日"];
+const todayIdx = (new Date().getDay() + 6) % 7;
+let ci = 0, day = DAYS[todayIdx];
+
+const sel = document.getElementById("client");
+CLIENTS.forEach((c, i) => sel.add(new Option(c.name, i)));
+sel.onchange = () => { ci = +sel.value; render(); };
+
+function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+function render() {
+  const c = CLIENTS[ci];
+  document.getElementById("policy").textContent = c.policy || "（記載なし）";
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  DAYS.forEach((d, i) => {
+    const b = document.createElement("button");
+    b.textContent = d;
+    b.className = (d === day ? "active " : "") + (i === todayIdx ? "today " : "") + (c.visits[d].length ? "" : "empty");
+    b.onclick = () => { day = d; render(); };
+    tabs.appendChild(b);
+  });
+  const v = c.visits[day];
+  document.getElementById("visits").innerHTML = v.length
+    ? v.map(x => `<div class="visit"><div class="head"><span class="time">${esc(x.time)}</span><span class="code">${esc(x.code)}</span></div><p>${esc(x.text)}</p></div>`).join("")
+    : `<p class="novisit">${day}曜日の訪問はありません</p>`;
+  const n = document.getElementById("notes");
+  n.hidden = !c.notes.length;
+  n.innerHTML = c.notes.map(t => `<p>※${esc(t)}</p>`).join("");
+}
+render();
+</script>
+</body>
+</html>

@@ -1,10 +1,7 @@
 name: ExcelをHTMLに変換してVercelにデプロイ
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "訪問内容一覧表.xlsx"
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -19,6 +16,11 @@ jobs:
 
       - name: 依存ライブラリインストール
         run: pip install openpyxl
+
+      - name: Google DriveからExcelをダウンロード
+        run: |
+          curl -L "https://docs.google.com/spreadsheets/d/1th-w6i52eSAFDyu1UWkQ-RDLxXSaVpMG/export?format=xlsx" \
+            -o "訪問内容一覧表.xlsx"
 
       - name: ExcelをHTMLに変換
         run: python convert.py 訪問内容一覧表.xlsx

@@ -56,6 +56,69 @@
   .notes { margin-top: 14px; background: var(--amber-bg); border-radius: 12px; padding: 12px 16px; }
   .notes p { font-size: 14.5px; color: var(--amber-text); padding-left: 1.1em; text-indent: -1.1em; }
   .notes p + p { margin-top: 6px; }
+
+  /* --- 電話ボタン --- */
+  #phones { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 0; }
+  .phone-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: #fff; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; font-size: 16px; color: #1a1a1a;
+    text-decoration: none; min-height: 44px;
+  }
+  .phone-btn .ph-type { font-size: 12px; color: var(--muted); white-space: nowrap; min-width: 5.5em; }
+  .phone-btn .ph-num { font-size: 18px; font-weight: 700; }
+  .phone-btn .ph-name { font-size: 13px; color: var(--muted); }
+  .phone-btn.cm { background: #EEF3FF; border-color: #7B9FE8; }
+
+  /* --- 緊急ボタン --- */
+  #emergency-btn {
+    width: 100%; margin: 10px 0 10px; padding: 12px 16px; min-height: 48px;
+    background: #FFF2F2; border: 1.5px solid #E53935; border-radius: 10px;
+    font-size: 16px; font-weight: 600; color: #C62828; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  #emergency-btn small { font-size: 12px; font-weight: 400; color: #B71C1C; }
+
+  /* --- 緊急パネル --- */
+  #emergency-panel {
+    position: fixed; inset: 0; background: #fff; overflow-y: auto; z-index: 100;
+    padding: 16px 16px 60px;
+  }
+  .ep-inner { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .ep-close {
+    align-self: flex-end; background: none; border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 16px; font-size: 14px; cursor: pointer; color: var(--muted);
+  }
+  .ep-title { font-size: 18px; font-weight: 700; color: #C62828; }
+  .ep-step {
+    background: #f9f9f9; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; font-size: 15px;
+  }
+  .ep-arrow { text-align: center; color: var(--muted); font-size: 22px; line-height: 1; }
+  .ep-branch { display: flex; flex-direction: column; gap: 8px; }
+  .ep-branch-yes {
+    background: #FFF2F2; border: 1.5px solid #E53935; border-radius: 10px;
+    padding: 12px 16px; font-size: 15px; color: #C62828;
+  }
+  .ep-branch-no {
+    background: #EEF6FF; border: 1.5px solid #1976D2; border-radius: 10px;
+    padding: 12px 16px; font-size: 15px; color: #1565C0;
+  }
+  .ep-signs { background: #FFF2F2; border-radius: 10px; padding: 14px 16px; }
+  .ep-signs h3 { font-size: 15px; font-weight: 700; color: #C62828; margin-bottom: 4px; }
+  .ep-signs .ep-signs-sub { font-size: 13px; color: #C62828; margin-bottom: 10px; font-weight: 600; }
+  .ep-signs ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .ep-signs li { font-size: 14px; padding-left: 1.6em; text-indent: -1.6em; color: #1a1a1a; }
+  .ep-signs li::before { content: "● "; color: #E53935; }
+  .ep-signs .ep-source { font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+  .ep-contact-title { font-size: 15px; font-weight: 600; }
+  .ep-call-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--blue); border: none; border-radius: 10px;
+    padding: 14px 16px; font-size: 16px; font-weight: 600; color: #fff;
+    text-decoration: none; min-height: 52px;
+  }
+  .ep-note { font-size: 14px; color: #1a1a1a; background: #f9f9f9; border-radius: 10px; padding: 12px 16px; line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -64,10 +127,55 @@
   <span>更新: __UPDATED__</span>
 </header>
 <select id="client" aria-label="利用者を選択"></select>
+<div id="phones"></div>
+<button id="emergency-btn" onclick="openEmergency()">⚠ 緊急時の対応　<small>全員共通</small></button>
 <details class="policy"><summary>援助方針</summary><p id="policy"></p></details>
 <div class="tabs" id="tabs" role="tablist"></div>
 <div id="visits"></div>
 <div class="notes" id="notes" hidden></div>
+
+<!-- 緊急時パネル -->
+<div id="emergency-panel" hidden>
+  <div class="ep-inner">
+    <button class="ep-close" onclick="closeEmergency()">&#10005; 閉じる</button>
+    <div class="ep-title">&#9888; 緊急時の対応フロー</div>
+    <div class="ep-step">① 体調不良・異変に気づく</div>
+    <div class="ep-arrow">↓</div>
+    <div class="ep-step">② 「すぐ119のサイン」が1つでもあるか確認する（下記一覧を参照）</div>
+    <div class="ep-arrow">↓</div>
+    <div class="ep-branch">
+      <div class="ep-branch-yes"><strong>ある → 119へ通報（救急車）</strong><br>反応・呼吸が無ければ胸骨圧迫・AED</div>
+      <div class="ep-branch-no"><strong>ない → 管理者・担当ケアマネへ連絡し、指示を仰ぐ</strong><br>迷えば &#9839;7119</div>
+    </div>
+    <div class="ep-arrow">↓</div>
+    <div class="ep-step">③ 対応を記録・報告</div>
+
+    <div class="ep-signs">
+      <h3>すぐ119のサイン（高齢者）</h3>
+      <p class="ep-signs-sub">1つでも当てはまれば、ためらわず119</p>
+      <ul>
+        <li>呼びかけに反応がない／呼吸がおかしい・していない</li>
+        <li>突然の激しい頭痛・高熱、立っていられないほどのふらつき</li>
+        <li>顔半分がゆがむ・しびれる、ろれつが回らない、急に見えにくい</li>
+        <li>突然の胸の激痛・締めつけ、急な息切れ・呼吸困難</li>
+        <li>突然の激しい腹痛、血を吐く、真っ黒な便が出る</li>
+        <li>突然のしびれ、片方の手足に力が入らない</li>
+        <li>けいれんが止まらない／止まっても意識が戻らない</li>
+        <li>のどに詰まらせて苦しそう（窒息）</li>
+        <li>大量出血・大きなやけど、転落などの大きな事故</li>
+      </ul>
+      <p class="ep-source">出典：消防庁『救急車利用リーフレット（高齢者版）』をもとに作成。迷うときは &#9839;7119（救急安心センター）へ。</p>
+    </div>
+
+    <div class="ep-contact-title">連絡先</div>
+    <a href="tel:09033261269" class="ep-call-btn">&#128222; 管理者（大平怜也）　090-3326-1269</a>
+    <div class="ep-note">
+      <strong>担当ケアマネ</strong> → このパネルを閉じて、利用者画面上部の「担当ケアマネ」ボタンから発信してください。<br><br>
+      <strong>119 / &#9839;7119</strong> → <strong style="font-size:17px">119</strong>・<strong style="font-size:17px">&#9839;7119</strong>（誤発信防止のためボタンなし）
+    </div>
+  </div>
+</div>
+
 <script>
 const CLIENTS = /*__DATA__*/[];
 const DAYS = ["月","火","水","木","金","土","日"];
@@ -80,8 +188,30 @@ sel.onchange = () => { ci = +sel.value; render(); };
 
 function esc(s){ const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 
+function renderPhones(c) {
+  const el = document.getElementById("phones");
+  if (!c.phones || !c.phones.length) { el.innerHTML = ""; return; }
+  el.innerHTML = c.phones.map(p => {
+    const cls = p.type === "担当ケアマネ" ? "phone-btn cm" : "phone-btn";
+    const nameHtml = p.name ? `<span class="ph-name">${esc(p.name)}</span>` : "";
+    return `<a href="tel:${esc(p.tel)}" class="${cls}">` +
+      `<span class="ph-type">${esc(p.type)}</span>` +
+      (nameHtml ? `<span>${nameHtml}<br><span class="ph-num">${esc(p.display)}</span></span>` : `<span class="ph-num">${esc(p.display)}</span>`) +
+      `</a>`;
+  }).join("");
+}
+
+function openEmergency() {
+  document.getElementById("emergency-panel").hidden = false;
+  document.getElementById("emergency-panel").scrollTop = 0;
+}
+function closeEmergency() {
+  document.getElementById("emergency-panel").hidden = true;
+}
+
 function render() {
   const c = CLIENTS[ci];
+  renderPhones(c);
   document.getElementById("policy").textContent = c.policy || "（記載なし）";
   const tabs = document.getElementById("tabs");
   tabs.innerHTML = "";

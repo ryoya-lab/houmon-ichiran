@@ -24,7 +24,7 @@ jobs:
 
       - name: Google DriveからExcelをダウンロード
         run: |
-          curl -L "https://docs.google.com/spreadsheets/d/1th-w6i52eSAFDyu1UWkQ-RDLxXSaVpMG/export?format=xlsx" \
+          curl -L "https://docs.google.com/spreadsheets/d/1lBYNBC-JQBoGqZ3tX0OW3OCD9GCD8d9JYTQHDuXUpRI/export?format=xlsx" \
             -o "訪問内容一覧表.xlsx"
 
       - name: ExcelをHTMLに変換
